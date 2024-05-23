@@ -10,10 +10,10 @@ import { AuthService } from './auth.service';
 
 @TRPCRouter()
 @Injectable()
-export class UserTrpcRouter implements OnModuleInit {
+export class AuthTrpcRouter implements OnModuleInit {
   private router: ReturnType<typeof this.createRouter>;
 
-  LOG: Logger = new Logger(UserTrpcRouter.name);
+  LOG: Logger = new Logger(AuthTrpcRouter.name);
 
   constructor(
     private readonly trpcService: tRPCService,

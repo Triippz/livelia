@@ -48,7 +48,6 @@ import { redisStore } from 'cache-manager-ioredis-yet';
     tRPCModule,
     HelperModule,
     UsersModule,
-    // CacheModule,
   ],
   controllers: [],
   providers: [],
