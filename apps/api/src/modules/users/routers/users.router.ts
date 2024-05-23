@@ -15,7 +15,7 @@ export class UserTrpcRouter implements OnModuleInit {
   }
 
   private createRouter() {
-    const t = this.trpcService.procedureAuth
+    const t = this.trpcService.protectedProcedure()
     return defineTrpcRouter('user', {
       user: t.query(() => []),
     })

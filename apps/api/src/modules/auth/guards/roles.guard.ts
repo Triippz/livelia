@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/role.decorator';
 import { BizException } from '../../../common/exceptions/biz.exception';
 import { ErrorCodeEnum } from '../../../common/constants/error-code.constant';
-import { RolesEnum as Roles } from '../../users/models/enumerations/roles.enum';
+import { RolesEnum } from '@livelia/entities';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -16,7 +16,7 @@ export class RolesGuard implements CanActivate {
 
     canActivate(context: ExecutionContext): boolean {
         const requiredRoles = this.reflector.getAllAndOverride<
-          Roles[]
+          RolesEnum[]
         >(ROLES_KEY, [context.getHandler(), context.getClass()]);
 
         if (!requiredRoles) {

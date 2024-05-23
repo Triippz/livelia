@@ -15,11 +15,11 @@ export async function up(knex: Knex): Promise<void> {
         table.string('email', 255).unique().notNullable();
         table.string('password').notNullable();
         table.string('status').notNullable().defaultTo('ACTIVE');
-        table.datetime('last_login');
         table.string('slug', 255).unique();
         table.boolean('is_active').defaultTo(false);
         table.string('photo_url', 255);
-        table.integer('role_id').unsigned().references('id').inTable('roles');
+        table.datetime('last_login_time');
+        table.string('last_login_ip', 255);
         table.timestamps(true, true);  // Automatically adds created_at and updated_at
       })
     )
@@ -28,12 +28,14 @@ export async function up(knex: Knex): Promise<void> {
         table
           .bigInteger('user_id')
           .unsigned()
+          .notNullable()
           .references('id')
           .inTable('users')
           .onDelete('CASCADE');
         table
           .integer('role_id')
           .unsigned()
+          .notNullable()
           .references('id')
           .inTable('roles')
           .onDelete('CASCADE');
@@ -45,6 +47,6 @@ export async function up(knex: Knex): Promise<void> {
 export async function down(knex: Knex): Promise<void> {
   return knex.schema
     .dropTableIfExists('user_roles')
-    .dropTableIfExists('users')
-    .dropTableIfExists('roles');
+    .then(() => knex.schema.dropTableIfExists('users'))
+    .then(() => knex.schema.dropTableIfExists('roles'));
 }

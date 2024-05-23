@@ -4,9 +4,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import DatabaseService from '../../processors/database/database.service';
+import { STRATEGY_JWT_AUTH } from '../../common/constants/strategy.constant';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: STRATEGY_JWT_AUTH }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule, JwtModule],

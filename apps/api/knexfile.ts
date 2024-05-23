@@ -19,11 +19,11 @@ const knexConfig: Knex.Config = {
     ssl: false,
   },
   migrations: {
-    directory: './src/database/migrations',
+    directory: './src/migrations',
   },
   seeds: {
     // Swap to dev-seeds for local testing
-    directory: './src/database/seeds',
+    directory: './src/seeds',
   },
 };
 
@@ -32,10 +32,10 @@ const knexFileDev: Knex.Config = {
     connectionString: process.env.DATABASE_URL_TEST,
   },
   migrations: {
-    directory: './src/database/migrations',
+    directory: './src/migrations',
   },
   seeds: {
-    directory: './src/database/seeds',
+    directory: './src/seeds',
   },
 };
 

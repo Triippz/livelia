@@ -1,5 +1,5 @@
 import { Expose } from 'class-transformer';
-import BaseEntity from '../../core/models/base.entity';
+import BaseEntity from '../base.entity';
 
 export class Role extends BaseEntity {
   @Expose()

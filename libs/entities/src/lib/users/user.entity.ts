@@ -1,5 +1,6 @@
 import { Expose } from 'class-transformer';
-import { BaseEntityWithDates } from '../../core/models/base.entity';
+import { BaseEntityWithDates } from '../base.entity';
+import { RolesEnum } from './enumerations/roles.enum';
 
 export class User extends BaseEntityWithDates {
   @Expose()
@@ -24,6 +25,9 @@ export class User extends BaseEntityWithDates {
   lastLogin: Date;
 
   @Expose()
+  lastLoginIp: string;
+
+  @Expose()
   slug: string;
 
   @Expose()
@@ -33,7 +37,7 @@ export class User extends BaseEntityWithDates {
   photoUrl: string;
 
   @Expose()
-  roleId: number;
+  roles?: RolesEnum[];
 
   public static tableName(): string {
     return 'users';

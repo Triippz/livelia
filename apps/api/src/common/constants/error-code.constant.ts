@@ -32,6 +32,8 @@ export enum ErrorCodeEnum {
   JWTExpired = 20002,
   JWTInvalid = 20003,
   InsufficientPermissions = 20004,
+  NotAuthorized = 20005,
+  InvalidCredentials = 20006,
 
   UserNotFound = 30000,
   UserExist = 30001,
@@ -88,6 +90,8 @@ export const ErrorCode = Object.freeze<Record<ErrorCodeEnum, [string, number]>>(
     [ErrorCodeEnum.UserNotFound]: ['user not found', 404],
     [ErrorCodeEnum.UserExist]: ['user already exist', 400],
     [ErrorCodeEnum.InsufficientPermissions]: ['insufficient permissions', 403],
+    [ErrorCodeEnum.NotAuthorized]: ['not authorized', 403],
+    [ErrorCodeEnum.InvalidCredentials]: ['invalid credentials', 400],
 
     [ErrorCodeEnum.CommentBanned]: ['this article comment is not allowed', 403],
     [ErrorCodeEnum.CommentConflict]: [

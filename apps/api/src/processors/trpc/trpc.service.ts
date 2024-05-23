@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { DiscoveryService, Reflector } from '@nestjs/core';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { fastifyRequestHandler } from '@trpc/server/adapters/fastify';
-import { FastifyRequest, FastifyReply } from 'fastify';
 import { TRPC_ROUTER } from '../../common/constants/trpc.constants';
 
 import { createContext } from './trpc.context';
@@ -11,35 +10,44 @@ import { tRpcRouters } from './trpc.routes';
 import { AuthService } from '../../modules/auth/auth.service';
 import { BizException } from '../../common/exceptions/biz.exception';
 import { ErrorCodeEnum } from '../../common/constants/error-code.constant';
+import { RolesEnum } from '@livelia/entities';
+import { UserAccessTokenClaims } from '@livelia/dtos';
 
 interface TA {
   router: any;
 }
 
 type ExtractRouterType<T extends TA> = T['router'];
-
 type MapToRouterType<T extends any[]> = {
   [K in keyof T]: ExtractRouterType<T[K]>;
 };
-
 type Routers = MapToRouterType<tRpcRouters>;
 
 @Injectable()
 export class tRPCService implements OnModuleInit {
-  private logger: Logger;
-  private _procedureAuth: typeof tRpc.procedure;
+  private logger = new Logger('tRPCService');
   public appRouter: ReturnType<typeof this.createAppRouter>;
 
   constructor(
     private readonly discovery: DiscoveryService,
     private readonly reflector: Reflector,
     private readonly authService: AuthService,
-  ) {
-    this.logger = new Logger('tRPCService');
+  ) {}
 
-    this._procedureAuth = tRpc.procedure.use(
+  get t() {
+    return tRpc;
+  }
+
+  publicProcedure() {
+    return tRpc.procedure;
+  }
+
+  protectedProcedure(allowedRoles: RolesEnum[] = []) {
+    return tRpc.procedure.use(
       tRpc.middleware(async (opts) => {
-        const authorization = opts.ctx.authorization;
+        const { authorization, ipLocation } = opts.ctx;
+
+
         if (!authorization) {
           throw new BizException(ErrorCodeEnum.AuthFail);
         }
@@ -48,17 +56,30 @@ export class tRPCService implements OnModuleInit {
         if (result !== true) {
           throw new BizException(result);
         }
-        return opts.next();
+
+        const userClaims = this.getUserClaimsFromToken(authorization);
+        if (allowedRoles.length > 0 && !this.isRoleAllowed(userClaims.roles, allowedRoles)) {
+          throw new BizException(ErrorCodeEnum.NotAuthorized);
+        }
+
+        return opts.next({
+          ctx: {
+            ...opts.ctx,
+            user: userClaims,
+            ipLocation
+          },
+        });
       }),
     );
   }
 
-  public get t() {
-    return tRpc;
+  private getUserClaimsFromToken(token: string): UserAccessTokenClaims {
+    // Decode the token and extract user roles. This is just a placeholder implementation.
+    return this.authService.decodeToken(token);
   }
 
-  public get procedureAuth() {
-    return this._procedureAuth;
+  private isRoleAllowed(userRoles: RolesEnum[], allowedRoles: RolesEnum[]): boolean {
+    return userRoles.some((role) => allowedRoles.includes(role));
   }
 
   onModuleInit() {
@@ -66,8 +87,8 @@ export class tRPCService implements OnModuleInit {
   }
 
   private createAppRouter() {
-    const p = this.discovery.getProviders();
-    const routers = p
+    const providers = this.discovery.getProviders();
+    const routers = providers
       .filter((provider) => {
         try {
           return this.reflector.get(TRPC_ROUTER, provider.metatype);
@@ -80,18 +101,20 @@ export class tRPCService implements OnModuleInit {
         if (!router) {
           this.logger.warn('missing router.');
         }
-
         return !!router;
       });
 
     const appRouter = tRpc.mergeRouters(...(routers as any as Routers));
-
     this.appRouter = appRouter;
     return appRouter;
   }
 
-  applyMiddleware(_app: NestFastifyApplication) {
-    _app.getHttpAdapter().all('/trpc/:path', async (req: any, res: any) => {
+  applyMiddleware(app: NestFastifyApplication) {
+    app.getHttpAdapter().all('/trpc/:path', this.createRequestHandler());
+  }
+
+  private createRequestHandler() {
+    return async (req: any, res: any) => {
       const path = (req.params as any).path;
       await fastifyRequestHandler({
         router: this.appRouter,
@@ -100,11 +123,10 @@ export class tRPCService implements OnModuleInit {
         res,
         path,
         onError: (opts) => {
-          const { error, type, path, input, ctx, req } = opts;
+          const { error } = opts;
           this.logger.error(error);
         },
       });
-    });
+    };
   }
 }
-

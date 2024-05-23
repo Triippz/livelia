@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@livelia/dtos": ["libs/dtos/src/index.ts"]
+      "@livelia/dtos": ["libs/dtos/src/index.ts"],
+      "@livelia/entities": ["libs/entities/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

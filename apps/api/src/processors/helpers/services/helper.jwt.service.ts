@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { isDev } from '../../../common/config/config.utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { UserAccessTokenClaims } from '@livelia/dtos';
 
 @Injectable()
 export class JWTService {
@@ -93,12 +94,16 @@ export class JWTService {
 
   public readonly expiresDay = this.configService.get<string>('jwt.expire');
 
-  async sign(id: string, info?: { ip: string; ua: string }): Promise<string> {
-    const token = sign({ id }, this.secret, {
+  async sign(tokenClaims: UserAccessTokenClaims, info?: { ip: string; ua: string }): Promise<string> {
+    const token = sign({ tokenClaims }, this.secret, {
       expiresIn: this.expiresDay,
     });
     await this.storeTokenInCache(token, info || {});
     return token;
+  }
+
+  decode(token: string) {
+    return verify(token, this.secret);
   }
 }
 
